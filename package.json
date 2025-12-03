@@ -1,0 +1,46 @@
+{
+  "name": "jjk-battloid",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/payment/webhook",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:sync": "prisma generate && prisma db push",
+    "seed:characters": "tsx scripts/generate-characters.ts",
+    "seed:xp": "tsx scripts/seed-xp.ts",
+    "clear:fights": "tsx scripts/clear-fights.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@google/generative-ai": "^0.11.3",
+    "@hookform/resolvers": "^3.9.1",
+    "@prisma/client": "^6.14.0",
+    "@tanstack/react-query": "^5.90.11",
+    "nanoid": "^5.1.6",
+    "next": "15.1.6",
+    "next-auth": "^5.0.0-beta.21",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hook-form": "^7.66.1",
+    "stripe": "^17.3.1",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.6",
+    "prisma": "^6.19.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.6",
+    "typescript": "^5",
+    "vitest": "^2.1.4"
+  }
+}
