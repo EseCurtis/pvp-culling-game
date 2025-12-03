@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { auth, signIn, signOut } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { SearchableBattleReports } from "./_components/searchable-battle-reports";
+import Link from "next/link";
 import { Footer } from "./_components/footer";
+import { SearchableBattleReports } from "./_components/searchable-battle-reports";
 
 export const metadata: Metadata = {
   title: "AI-Powered Jujutsu Kaisen Battle Simulator",
@@ -258,7 +258,7 @@ export default async function Home() {
           <SearchableBattleReports fights={recentFights} />
 
           {/* Creator Links Section */}
-          <section className="rounded-3xl border border-[var(--border)] bg-black/40 p-6">
+          <section className="rounded-3xl hidden border border-[var(--border)] bg-black/40 p-6">
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-xs uppercase tracking-[0.4em] text-[var(--muted)]">

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-black/40 px-4 py-8">
+    <footer className="border-t border-white/10 bg-black/40 px-4 py-8 mt-32">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
@@ -55,7 +55,7 @@ export function Footer() {
                 GitHub
               </a>
               <a
-                href="https://twitter.com/esecurtis"
+                href="https://twitter.com/curtisese"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-xs text-white/60 transition hover:text-white"
