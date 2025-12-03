@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SorcererGrade {
+  GRADE_4
+  GRADE_3
+  GRADE_2
+  GRADE_1
+  SPECIAL_GRADE
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYSTACK
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  country       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  character    Character?
+  accounts     Account[]
+  sessions     Session[]
+  xpPurchases  XpPurchase[]
+  transactions PaymentTransaction[]
+}
+
+model Character {
+  id                 String        @id @default(cuid())
+  userId             String        @unique
+  name               String
+  gender             String
+  appearance         String
+  personality        String
+  backstory          String
+  powerSystem        String
+  cursedTechnique    String
+  innateTechnique    String
+  maxTechnique       String
+  domainExpansion    String
+  reverseTechnique   String?
+  energyLevel        Int
+  powerLevelEstimate String
+  grade              SorcererGrade @default(GRADE_4)
+  weaknesses         Json
+  balancingNotes     Json?
+  bindingVows        Json?
+  wins               Int           @default(0)
+  losses             Int           @default(0)
+  ranking            Int           @default(0)
+  xp                 Int           @default(0)
+  lastFoughtAt       DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fightsAsCharacter1 FightResult[] @relation("FightCharacterOne")
+  fightsAsCharacter2 FightResult[] @relation("FightCharacterTwo")
+  fightsAsWinner     FightResult[] @relation("FightWinner")
+  fightsAsLoser      FightResult[] @relation("FightLoser")
+}
+
+model FightResult {
+  id               String   @id @default(cuid())
+  character1Id     String
+  character2Id     String
+  winnerId         String
+  loserId          String
+  summaryTitle     String
+  summaryNarrative String   @db.Text
+  summaryPayload   Json
+  round            Int      @default(1)
+  occurredAt       DateTime @default(now())
+
+  character1 Character @relation("FightCharacterOne", fields: [character1Id], references: [id])
+  character2 Character @relation("FightCharacterTwo", fields: [character2Id], references: [id])
+  winner     Character @relation("FightWinner", fields: [winnerId], references: [id])
+  loser      Character @relation("FightLoser", fields: [loserId], references: [id])
+
+  @@index([occurredAt])
+  @@index([winnerId])
+  @@index([loserId])
+  @@index([round])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model XpPurchase {
+  id            String          @id @default(cuid())
+  userId        String
+  amount        Int // XP amount purchased
+  price         Float // Price in USD
+  currency      String          @default("USD")
+  provider      PaymentProvider
+  transactionId String // External transaction ID from Stripe/Paystack
+  status        PaymentStatus   @default(PENDING)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentTransaction PaymentTransaction?
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([status])
+}
+
+model PaymentTransaction {
+  id            String          @id @default(cuid())
+  userId        String
+  xpPurchaseId  String?         @unique
+  amount        Float // Amount paid
+  currency      String          @default("USD")
+  provider      PaymentProvider
+  transactionId String // External transaction ID
+  status        PaymentStatus   @default(PENDING)
+  metadata      Json? // Additional payment metadata
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xpPurchase XpPurchase? @relation(fields: [xpPurchaseId], references: [id])
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([status])
+  @@index([createdAt])
+}
