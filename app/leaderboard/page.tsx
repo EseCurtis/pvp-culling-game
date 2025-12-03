@@ -25,6 +25,7 @@ export default async function LeaderboardPage({
         wins: true,
         losses: true,
         ranking: true,
+        previousRanking: true,
         xp: true,
       },
     }),
@@ -53,33 +54,72 @@ export default async function LeaderboardPage({
 
         <div className="rounded-3xl border border-white/10 bg-black/50 p-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {leaders.map((fighter) => (
-              <Link
-                key={fighter.id}
-                href={`/characters/${fighter.id}`}
-                className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
+            {leaders.map((fighter) => {
+              const prev = fighter.previousRanking ?? fighter.ranking;
+              let trend: "up" | "down" | "none" = "none";
+              if (prev > fighter.ranking) trend = "up";
+              else if (prev < fighter.ranking) trend = "down";
+
+              return (
+                <Link
+                  key={fighter.id}
+                  href={`/characters/${fighter.id}`}
+                  className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:border-white/20 hover:bg-white/10"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-white/80">
-                        #{fighter.ranking || 0}
+                        #
+                        {fighter.ranking && fighter.ranking > 0
+                          ? fighter.ranking
+                          : "-"}
                       </span>
-                      <h3 className="text-base font-semibold break-words">
-                        {fighter.name}
-                      </h3>
+                        <h3 className="text-base font-semibold break-words">
+                          {fighter.name}
+                        </h3>
+                      </div>
+                      <p className="mt-1 text-xs uppercase tracking-[0.3em] text-white/40">
+                        {fighter.grade.replace("_", " ")}
+                      </p>
+                      <div className="mt-2 flex items-center gap-4 text-xs text-white/60">
+                        <span>
+                          {fighter.wins}W / {fighter.losses}L
+                        </span>
+                        <span>{fighter.xp} XP</span>
+                      </div>
                     </div>
-                    <p className="mt-1 text-xs uppercase tracking-[0.3em] text-white/40">
-                      {fighter.grade.replace("_", " ")}
-                    </p>
-                    <div className="mt-2 flex items-center gap-4 text-xs text-white/60">
-                      <span>{fighter.wins}W / {fighter.losses}L</span>
-                      <span>{fighter.xp} XP</span>
+                    <div className="ml-3 flex flex-col items-end text-xs">
+                      <span
+                        className={
+                          trend === "up"
+                            ? "text-green-400"
+                            : trend === "down"
+                            ? "text-red-400"
+                            : "text-white/40"
+                        }
+                        aria-label={
+                          trend === "up"
+                            ? "Ranking improved"
+                            : trend === "down"
+                            ? "Ranking declined"
+                            : "Ranking unchanged"
+                        }
+                      >
+                        {trend === "up"
+                          ? "↑"
+                          : trend === "down"
+                          ? "↓"
+                          : "•"}
+                      </span>
+                      <span className="mt-1 text-[10px] text-white/40">
+                        Prev: #{prev || "-"}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
 
           {leaders.length === 0 && (

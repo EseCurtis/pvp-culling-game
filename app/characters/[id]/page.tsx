@@ -81,7 +81,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: `${character.name} - ${character.grade.replace("_", " ")} Sorcerer`,
-      description: `${character.name}: ${character.wins}W/${character.losses}L | Rank #${character.ranking || 0} | ${character.powerLevelEstimate}`,
+      description: `${character.name}: ${character.wins}W/${character.losses}L | ${
+        character.ranking && character.ranking > 0
+          ? `Rank #${character.ranking}`
+          : "Unranked"
+      } | ${character.powerLevelEstimate}`,
     },
     alternates: {
       canonical: characterUrl,
@@ -335,7 +339,12 @@ export default async function CharacterProfilePage({ params }: Props) {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-[0.3em] text-white/30">Rank</dt>
-                <dd className="text-2xl font-semibold">#{character.ranking || 0}</dd>
+                <dd className="text-2xl font-semibold">
+                  #
+                  {character.ranking && character.ranking > 0
+                    ? character.ranking
+                    : "-"}
+                </dd>
               </div>
             </dl>
           </div>

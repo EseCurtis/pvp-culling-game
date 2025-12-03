@@ -70,6 +70,7 @@ model Character {
   wins               Int           @default(0)
   losses             Int           @default(0)
   ranking            Int           @default(0)
+  previousRanking    Int?
   xp                 Int           @default(0)
   lastFoughtAt       DateTime?
   createdAt          DateTime      @default(now())
