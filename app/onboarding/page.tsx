@@ -1,5 +1,3 @@
-import { CharacterOnboardingForm } from "./character-form";
-import { QuickGenerateForm } from "./quick-generate-form";
 import { auth } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
