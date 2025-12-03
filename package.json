@@ -5,7 +5,7 @@
   "scripts": {
     "stripe:listen": "stripe listen --forward-to http://localhost:3000/api/payment/webhook",
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx prisma db push && npx prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:sync": "prisma generate && prisma db push",
