@@ -33,8 +33,8 @@ const fieldConfig: Record<FieldKey, FieldConfig> = {
     placeholder: "Male-presenting, androgynous, cursed puppet, etc.",
   },
   country: {
-    label: "Country",
-    hint: "Select your country for payment processing.",
+    label: "Location",
+    hint: "Select your country (optional).",
     placeholder: "Select country...",
     type: "select",
   },

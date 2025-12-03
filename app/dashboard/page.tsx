@@ -11,8 +11,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BindingVowForm } from "./_components/binding-vow-form";
 import { CharacterEvolutionForm } from "./_components/character-evolution-form";
-import { PaginatedOpponentSelector } from "./_components/paginated-opponent-selector";
 import { LowXpModal } from "./_components/low-xp-modal";
+import { PaginatedOpponentSelector } from "./_components/paginated-opponent-selector";
 import { TransactionHistory } from "./_components/transaction-history";
 import { XpPurchaseButton } from "./_components/xp-purchase-button";
 

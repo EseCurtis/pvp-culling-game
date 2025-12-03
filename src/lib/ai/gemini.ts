@@ -264,3 +264,63 @@ export async function generateBattleSummary(
   return BattleSummarySchema.parse(json);
 }
 
+const characterGenerationSpec = [
+  "CharacterProfile object shape:",
+  "{",
+  '  "identity": {',
+  '    "name": string,',
+  '    "gender": string',
+  "  },",
+  '  "appearance": string (>=30 chars, detailed description),',
+  '  "personality": string (>=30 chars, detailed description),',
+  '  "backstory": string (>=60 chars, detailed lore),',
+  '  "powerSystem": string (>=20 chars, how they manipulate cursed energy),',
+  '  "cursedTechnique": string (>=40 chars, primary signature ability),',
+  '  "innateTechnique": string (>=40 chars, innate skill),',
+  '  "maximumTechnique": string (>=40 chars, trump card),',
+  '  "domainExpansion": string (>=40 chars, name and description),',
+  '  "reverseTechnique"?: string (>=20 chars, optional healing method),',
+  '  "energyLevel": number (1-9999),',
+  '  "powerLevelEstimate": string (short descriptor)',
+  "}",
+].join("\n");
+
+const CharacterGenerationSchema = z.object({
+  identity: z.object({
+    name: z.string().min(1),
+    gender: z.string().min(1),
+  }),
+  appearance: z.string().min(30),
+  personality: z.string().min(30),
+  backstory: z.string().min(60),
+  powerSystem: z.string().min(20),
+  cursedTechnique: z.string().min(40),
+  innateTechnique: z.string().min(40),
+  maximumTechnique: z.string().min(40),
+  domainExpansion: z.string().min(40),
+  reverseTechnique: z.string().min(20).optional(),
+  energyLevel: z.number().int().min(1).max(9999),
+  powerLevelEstimate: z.string().min(1),
+});
+
+export type GeneratedCharacter = z.infer<typeof CharacterGenerationSchema>;
+
+export async function generateCharacterFromPrompt(
+  prompt: string
+): Promise<GeneratedCharacter> {
+  const promptSections = [
+    "You are an expert character creator in the Jujutsu Kaisen universe.",
+    "Generate a complete, lore-accurate sorcerer character based on the user's prompt.",
+    "Ensure all fields are detailed, creative, and consistent with Jujutsu Kaisen lore.",
+    "Make the character unique and interesting while maintaining power balance.",
+    characterGenerationSpec,
+    "MANDATORY: All string fields must meet their minimum character requirements.",
+    "MANDATORY: energyLevel must be between 1 and 9999.",
+    "MANDATORY: reverseTechnique is optional but if included must be >=20 chars.",
+    `USER PROMPT:\n${prompt}`,
+  ];
+
+  const json = await generateJsonResponse(promptSections);
+  return CharacterGenerationSchema.parse(json);
+}
+

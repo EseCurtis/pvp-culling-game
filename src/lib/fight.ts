@@ -127,8 +127,10 @@ export async function executeFight(
       : battleCost + winReward; // Defender wins: receives payment + reward
 
     // Update challenger stats and XP
+    // In JJK, winning battles increases cursed energy through experience
     const challengerUpdateData: {
       xp: { increment: number };
+      energyLevel?: { increment: number };
       wins?: { increment: number };
       losses?: { increment: number };
       lastFoughtAt: Date;
@@ -139,8 +141,12 @@ export async function executeFight(
 
     if (challengerWon) {
       challengerUpdateData.wins = { increment: 1 };
+      // Winning battles increases cursed energy through combat experience
+      challengerUpdateData.energyLevel = { increment: 10 };
     } else {
       challengerUpdateData.losses = { increment: 1 };
+      // Even losing provides some growth, but less
+      challengerUpdateData.energyLevel = { increment: 5 };
     }
 
     const updatedChallenger = await tx.character.update({
@@ -149,8 +155,10 @@ export async function executeFight(
     });
 
     // Update defender stats and XP
+    // In JJK, winning battles increases cursed energy through experience
     const defenderUpdateData: {
       xp: { increment: number };
+      energyLevel?: { increment: number };
       wins?: { increment: number };
       losses?: { increment: number };
       lastFoughtAt: Date;
@@ -161,8 +169,12 @@ export async function executeFight(
 
     if (challengerWon) {
       defenderUpdateData.losses = { increment: 1 };
+      // Even losing provides some growth, but less
+      defenderUpdateData.energyLevel = { increment: 5 };
     } else {
       defenderUpdateData.wins = { increment: 1 };
+      // Winning battles increases cursed energy through combat experience
+      defenderUpdateData.energyLevel = { increment: 10 };
     }
 
     const updatedDefender = await tx.character.update({
@@ -173,6 +185,24 @@ export async function executeFight(
     // Validate XP doesn't go negative (shouldn't happen due to pre-check, but safety measure)
     if (updatedChallenger.xp < 0 || updatedDefender.xp < 0) {
       throw new Error("XP balance cannot be negative");
+    }
+
+    // Cap energy level at 9999 (JJK lore limit)
+    if (updatedChallenger.energyLevel > 9999 || updatedDefender.energyLevel > 9999) {
+      await Promise.all([
+        updatedChallenger.energyLevel > 9999
+          ? tx.character.update({
+              where: { id: challenger.id },
+              data: { energyLevel: 9999 },
+            })
+          : Promise.resolve(),
+        updatedDefender.energyLevel > 9999
+          ? tx.character.update({
+              where: { id: defender.id },
+              data: { energyLevel: 9999 },
+            })
+          : Promise.resolve(),
+      ]);
     }
 
     return fightRecord;

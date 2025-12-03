@@ -108,12 +108,35 @@ export async function updateCharacterAction(
     };
   }
 
-  if (
-    candidate.energyLevel !== undefined &&
-    candidate.energyLevel < character.energyLevel
-  ) {
-    return { error: "Energy level can only increase." };
+  // Calculate energy level increase based on upgrades
+  // In JJK, energy increases through mastery and achievements, not arbitrary numbers
+  let energyLevelIncrease = 0;
+  
+  // Technique mastery increases energy
+  if (candidate.domainExpansion) {
+    energyLevelIncrease += 50; // Domain mastery is a major power boost
   }
+  if (candidate.reverseTechnique) {
+    energyLevelIncrease += 30; // Reverse cursed technique mastery
+  }
+  if (candidate.maxTechnique) {
+    energyLevelIncrease += 40; // Maximum technique evolution
+  }
+  if (candidate.cursedTechnique || candidate.innateTechnique) {
+    energyLevelIncrease += 20; // Technique refinement
+  }
+  
+  // Power system refinement
+  if (candidate.powerSystem) {
+    energyLevelIncrease += 15;
+  }
+  
+  // Character growth (backstory, personality evolution)
+  if (candidate.backstory || candidate.personality) {
+    energyLevelIncrease += 10;
+  }
+
+  const newEnergyLevel = Math.min(9999, character.energyLevel + energyLevelIncrease);
 
   const profileInput = buildProfileInput(character, {
     appearance: candidate.appearance,
@@ -125,7 +148,7 @@ export async function updateCharacterAction(
     maximumTechnique: candidate.maxTechnique,
     domainExpansion: candidate.domainExpansion,
     reverseTechnique: candidate.reverseTechnique,
-    energyLevel: candidate.energyLevel,
+    energyLevel: newEnergyLevel,
     powerLevelEstimate: candidate.powerLevelEstimate,
   });
 
@@ -135,6 +158,7 @@ export async function updateCharacterAction(
     where: { id: character.id },
     data: {
       ...candidate,
+      energyLevel: newEnergyLevel, // Update with calculated energy level
       grade: insights.grade,
       weaknesses: insights.weaknesses,
       balancingNotes: insights.balancingNotes ?? character.balancingNotes ?? [],
@@ -200,10 +224,16 @@ export async function createBindingVowAction(
 
   const insights = await generateCharacterInsights(profileInput);
 
+  // Binding vows increase cursed energy through sacrifice and power exchange
+  // Each binding vow provides a significant energy boost (lore-accurate)
+  const energyLevelIncrease = 25; // Binding vows are major power boosts in JJK
+  const newEnergyLevel = Math.min(9999, character.energyLevel + energyLevelIncrease);
+
   await prisma.character.update({
     where: { id: character.id },
     data: {
       bindingVows: updatedVows,
+      energyLevel: newEnergyLevel,
       grade: insights.grade,
       weaknesses: insights.weaknesses,
       balancingNotes: insights.balancingNotes ?? character.balancingNotes ?? [],
