@@ -1,7 +1,9 @@
 import { CharacterOnboardingForm } from "./character-form";
+import { QuickGenerateForm } from "./quick-generate-form";
 import { auth } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
+import { OnboardingModeSelector } from "./mode-selector";
 
 export default async function OnboardingPage() {
   const session = await auth();
@@ -28,12 +30,11 @@ export default async function OnboardingPage() {
             Build Your Jujutsu Sorcerer
           </h1>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Complete the profile, submit for AI validation, and enter the daily
-            bracket. One user. One fighter. No retries.
+            Choose how you want to create your character. You can generate one quickly with AI or build it step-by-step.
           </p>
         </div>
 
-        <CharacterOnboardingForm
+        <OnboardingModeSelector
           defaultName={session.user.name ?? session.user.email ?? "Sorcerer"}
         />
       </div>

@@ -3,7 +3,7 @@ import { z } from "zod";
 export const characterFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   gender: z.string().min(1, "Gender is required"),
-  country: z.string().min(2, "Country is required"),
+  country: z.string().optional(),
   appearance: z
     .string()
     .min(30, "Describe the appearance in at least 30 characters"),
@@ -80,14 +80,6 @@ export const characterUpgradeSchema = z
     reverseTechnique: z
       .string()
       .min(20, "Provide more insight into reverse cursed techniques.")
-      .optional(),
-    energyLevel: z
-      .number({
-      //  invalid_type_error: "Energy level must be numeric",
-      })
-      .int()
-      .min(1)
-      .max(9999)
       .optional(),
     powerLevelEstimate: z
       .string()

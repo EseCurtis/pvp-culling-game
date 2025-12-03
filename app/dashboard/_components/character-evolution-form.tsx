@@ -25,7 +25,7 @@ type Props = {
   };
 };
 
-type TextFieldKey = Exclude<keyof CharacterUpgradeValues, "energyLevel">;
+type TextFieldKey = keyof CharacterUpgradeValues;
 
 const textFields: Array<{
   name: TextFieldKey;
@@ -91,20 +91,14 @@ export function CharacterEvolutionForm({ context }: Props) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CharacterUpgradeValues>({
     resolver: zodResolver(characterUpgradeSchema),
     defaultValues: {},
   });
 
-  const numberRegister = register("energyLevel", {
-    valueAsNumber: true,
-    setValueAs: (value) => {
-      if (value === "" || value === undefined) return undefined;
-      const num = Number(value);
-      return Number.isNaN(num) ? undefined : num;
-    },
-  });
+  const watchedValues = watch();
 
   const textRegister = (name: TextFieldKey) =>
     register(name, {
@@ -115,17 +109,34 @@ export function CharacterEvolutionForm({ context }: Props) {
       },
     });
 
+  const calculateEnergyIncrease = (values: CharacterUpgradeValues): number => {
+    let increase = 0;
+    if (values.domainExpansion) increase += 50;
+    if (values.reverseTechnique) increase += 30;
+    if (values.maxTechnique) increase += 40;
+    if (values.cursedTechnique || values.innateTechnique) increase += 20;
+    if (values.powerSystem) increase += 15;
+    if (values.backstory || values.personality) increase += 10;
+    return increase;
+  };
+
   const onSubmit = handleSubmit((values) => {
     setFormMessage(null);
+    const energyIncrease = calculateEnergyIncrease(values);
     startTransition(async () => {
       const result = await updateCharacterAction(values);
       if (result?.error) {
         setFormMessage(result.error);
         return;
       }
-      setFormMessage("Upgrade submitted. AI recalibrated your ranking.");
+      const message = energyIncrease > 0
+        ? `Upgrade submitted. Energy level increased by ${energyIncrease} through mastery. AI recalibrated your ranking.`
+        : "Upgrade submitted. AI recalibrated your ranking.";
+      setFormMessage(message);
     });
   });
+
+  const previewEnergyIncrease = calculateEnergyIncrease(watchedValues);
 
   return (
     <form
@@ -175,23 +186,32 @@ export function CharacterEvolutionForm({ context }: Props) {
           </label>
         ))}
 
-        <label className="block text-sm">
-          <span className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
-            Cursed Energy Level ({context.energyLevel} currently)
-          </span>
-          <input
-            type="number"
-            min={context.energyLevel}
-            className="mt-1 w-full rounded-2xl border border-[var(--border)] bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-white"
-            placeholder="Enter a higher number than your current rating"
-            {...numberRegister}
-          />
-          {errors.energyLevel?.message && (
-            <span className="text-xs text-red-400">
-              {errors.energyLevel.message}
-            </span>
-          )}
-        </label>
+        <div className="rounded-2xl border border-[var(--border)] bg-black/20 p-4">
+          <p className="text-xs uppercase tracking-[0.3em] text-[var(--muted)]">
+            Cursed Energy Level
+          </p>
+          <p className="mt-2 text-sm text-white/80">
+            Current: <span className="font-semibold">{context.energyLevel}</span>
+            {previewEnergyIncrease > 0 && (
+              <span className="ml-2 text-green-400">
+                → {context.energyLevel + previewEnergyIncrease} (+{previewEnergyIncrease})
+              </span>
+            )}
+          </p>
+          <p className="mt-2 text-xs text-[var(--muted)]">
+            Energy level increases automatically through:
+          </p>
+          <ul className="mt-2 space-y-1 text-xs text-[var(--muted)]">
+            <li>• Winning battles (+10) / Losing battles (+5)</li>
+            <li>• Creating binding vows (+25 per vow)</li>
+            <li>• Domain expansion mastery (+50)</li>
+            <li>• Reverse cursed technique mastery (+30)</li>
+            <li>• Maximum technique evolution (+40)</li>
+            <li>• Technique refinement (+20)</li>
+            <li>• Power system refinement (+15)</li>
+            <li>• Character growth (+10)</li>
+          </ul>
+        </div>
       </div>
 
       {formMessage && (
