@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { generateAndCreateCharacterAction } from "./generate-action";
 
-export function QuickGenerateForm({ defaultName }: { defaultName: string }) {
+export function QuickGenerateForm({  }: { defaultName: string }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [isPending, startTransition] = useTransition();
