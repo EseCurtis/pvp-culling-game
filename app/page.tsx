@@ -215,7 +215,10 @@ export default async function Home() {
                   className="flex items-center gap-4 py-3 text-sm transition hover:bg-white/5 rounded-lg px-2 -mx-2"
                 >
                   <span className="text-lg font-semibold text-white/80">
-                    #{fighter.ranking || 0}
+                    #
+                    {fighter.ranking && fighter.ranking > 0
+                      ? fighter.ranking
+                      : "-"}
                   </span>
                   <div className="flex-1">
                     <p className="text-base font-medium">{fighter.name}</p>

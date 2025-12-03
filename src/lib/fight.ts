@@ -1,12 +1,13 @@
 import { Character } from "@prisma/client";
 import {
-    generateBattleSummary,
-    type BattleSummaryContext,
-    type FighterStats,
+  generateBattleSummary,
+  type BattleSummaryContext,
+  type FighterStats,
 } from "./ai/gemini";
 import { businessLogicConfig } from "./business-logic.config";
 import { parseBindingVows, parseWeaknesses } from "./character";
 import { prisma } from "./prisma";
+import { sendLeaderboardMovementEmail } from "./mailer";
 
 function safeWeaknesses(character: Character) {
   try {
@@ -222,15 +223,71 @@ async function recomputeRankings() {
       { energyLevel: "desc" },
       { createdAt: "asc" },
     ],
+    include: {
+      user: { select: { email: true, name: true } },
+    },
   });
 
-  await prisma.$transaction(
-    ranked.map((character, index) =>
-      prisma.character.update({
-        where: { id: character.id },
-        data: { ranking: index + 1 },
-      })
-    )
-  );
+  const updates: {
+    id: string;
+    oldRank: number;
+    newRank: number;
+    email?: string | null;
+    characterName: string;
+  }[] = [];
+
+  ranked.forEach((character, index) => {
+    const newRank = index + 1;
+    const oldRank = character.ranking;
+
+    if (oldRank === newRank) {
+      return;
+    }
+
+    updates.push({
+      id: character.id,
+      oldRank,
+      newRank,
+      email: character.user?.email ?? null,
+      characterName: character.name,
+    });
+  });
+
+  if (updates.length > 0) {
+    await prisma.$transaction(
+      updates.map((update) =>
+        prisma.character.update({
+          where: { id: update.id },
+          data: {
+            ranking: update.newRank,
+            previousRanking: update.oldRank,
+          },
+        })
+      )
+    );
+  }
+
+  // Send notifications for users whose rank worsened (their spot was taken)
+  if (process.env.ENABLE_LEADERBOARD_EMAILS === "true") {
+    const movements = updates.filter(
+      (u) => u.email && u.oldRank > 0 && u.newRank > u.oldRank
+    );
+
+    if (movements.length > 0) {
+      await Promise.all(
+        movements.map((movement) =>
+          sendLeaderboardMovementEmail({
+            email: movement.email!,
+            characterName: movement.characterName,
+            oldRank: movement.oldRank,
+            newRank: movement.newRank,
+          }).catch((error) => {
+            console.error("Failed to send leaderboard email", error);
+          })
+        )
+      );
+    }
+  }
 }
+
 
